@@ -6,8 +6,8 @@
 
 # Resources
 ## Twitter API Documentation 
-- [Retrieving tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/introduction)
 - [API auth via Postman](https://community.postman.com/t/twitter-api-authorization/9512)
+- [Tweet timeline for a user ID](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/quick-start)
 ## Clustering and Sentiment Analysis
 - [Bag-of-Words modeling](https://machinelearningmastery.com/gentle-introduction-bag-words-model/)
 - [Dynamic clustering](https://towardsdatascience.com/10-tips-for-choosing-the-optimal-number-of-clusters-277e93d72d92)
