@@ -1,0 +1,27 @@
+{
+    "accounts": [
+        "telegraph",
+        "cbcnews",
+        "independent",
+        "rt_com",
+        "guardiannews",
+        "newsweek",
+        "skynewsbreak",
+        "ajenglish",
+        "financiantimes",
+        "breakingnews",
+        "huffpost",
+        "ap",
+        "washingtonpost",
+        "abc",
+        "time",
+        "wsj",
+        "theeconomist",
+        "bbcworld",
+        "bbcbreaking",
+        "cnn",
+        "nytimes",
+        "cnnbrk",
+        "reuters"
+    ]
+}
