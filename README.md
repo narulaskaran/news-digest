@@ -1,5 +1,9 @@
 # News Digest
 
+# How to Set Up
+
+# System Overview
+
 # Resources
 ## Twitter API Documentation 
 - [Retrieving tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/introduction)
