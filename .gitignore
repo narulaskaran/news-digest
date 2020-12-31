@@ -128,3 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 twitter-credentials.json
+config/token.pickle
+.vscode/settings.json
+config/gmail-credentials.json
+data/db.json
