@@ -26,30 +26,6 @@ TWITTER_CREDENTIALS = {
 }
 DB_PATH = 'data/db.json'
 
-
-def check_twitter_auth():
-    if not path.exists(TWITTER_CONFIG_PATH):
-        init_credential_file(TWITTER_CONFIG_PATH, TWITTER_CREDENTIALS)
-    else:
-        Twitter.Twitter()
-
-
-def check_gmail_auth():
-    if not path.exists(GMAIL_CONFIG_PATH):
-        init_credential_file(GMAIL_CONFIG_PATH, GMAIL_CREDENTIALS)
-    else:
-        Gmail.Gmail()
-
-
-def init_db():
-    if not path.exists(DB_PATH):
-        mkdir('data')
-        f = open(DB_PATH, 'w')
-        f.write('')
-        f.close()
-    db = TinyDB(DB_PATH)
-
-
 def init_credential_file(path, contents):
     f = open(path, 'w')
     f.write(contents)
@@ -57,6 +33,22 @@ def init_credential_file(path, contents):
     print("FILL IN CREDENTIALS AT " + path + ", THEN RERUN SETUP")
 
 if __name__ == "__main__":
-    check_twitter_auth()
-    check_gmail_auth()
-    init_db()
+    #gmail auth
+    if not path.exists(GMAIL_CONFIG_PATH):
+        init_credential_file(GMAIL_CONFIG_PATH, GMAIL_CREDENTIALS)
+    else:
+        Gmail.Gmail()
+
+    #twitter auth
+    if not path.exists(TWITTER_CONFIG_PATH):
+        init_credential_file(TWITTER_CONFIG_PATH, TWITTER_CREDENTIALS)
+    else:
+        Twitter.Twitter()
+
+    # db init
+    if not path.exists(DB_PATH):
+        mkdir('data')
+        f = open(DB_PATH, 'w')
+        f.write('')
+        f.close()
+    db = TinyDB(DB_PATH)
