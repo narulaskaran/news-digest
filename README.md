@@ -10,11 +10,6 @@ Run `python3 ./setup.py` from the root directory. This script will initialize co
 
 
 # Resources
-## Twitter API Documentation 
-- [API auth via Postman](https://community.postman.com/t/twitter-api-authorization/9512)
-- [Tweet timeline for a user ID](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/quick-start)
-## Gmail Python Documentation
-- [Gmail quickstart with Python](https://developers.google.com/gmail/api/quickstart/python)
 ## Clustering and Sentiment Analysis
 - [Bag-of-Words modeling](https://machinelearningmastery.com/gentle-introduction-bag-words-model/)
 - [Dynamic clustering](https://towardsdatascience.com/10-tips-for-choosing-the-optimal-number-of-clusters-277e93d72d92)
@@ -23,3 +18,10 @@ Run `python3 ./setup.py` from the root directory. This script will initialize co
 - [Trend detection in social streams](https://youtu.be/duHxpSTmwW0)
 ## News Sources
 - [Top 30 twitter news accounts](https://intellfusion.medium.com/30-must-follow-twitter-accounts-for-news-in-2019-e981595759a5)
+## Twitter API Documentation 
+- [API auth via Postman](https://community.postman.com/t/twitter-api-authorization/9512)
+- [Tweet timeline for a user ID](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/quick-start)
+## Gmail Python Documentation
+- [Gmail quickstart with Python](https://developers.google.com/gmail/api/quickstart/python)
+## TinyDB Documentation
+- [Library documentation](https://tinydb.readthedocs.io/en/latest/usage.html)
