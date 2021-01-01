@@ -1,7 +1,8 @@
 from os import path, mkdir
 import Gmail
 import Twitter
-from tinydb import TinyDB, Query
+from tinydb import TinyDB
+import json
 
 GMAIL_CONFIG_PATH = 'config/gmail-credentials.json'
 GMAIL_CREDENTIALS = {
@@ -47,8 +48,14 @@ if __name__ == "__main__":
 
     # db init
     if not path.exists(DB_PATH):
-        mkdir('data')
+        if not path.isdir('./data/'):
+            mkdir('data')
         f = open(DB_PATH, 'w')
         f.write('')
         f.close()
     db = TinyDB(DB_PATH)
+    accounts_table = db.table('accounts')
+    with open('./config/config.json') as config:
+        config = json.load(config)
+        accounts_table.insert_multiple([{'handle': handle} for handle in config['accounts']])
+
