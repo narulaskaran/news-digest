@@ -1,6 +1,6 @@
 import json
 import requests
-
+from tinydb import TinyDB, Query
 
 class Twitter:
     def __init__(self):
@@ -11,17 +11,20 @@ class Twitter:
             self.API_SECRET = config['api-secret']
             self.BEARER_TOKEN = config['bearer-token']
             # make test request
-            status_code, res = self.fetchUserData('jack')
-            if status_code == 200:
+            res = self.fetchUserData('jack')
+            if res:
                 print('Successful test request!')
             else:
-                print('Error connecting to the Twitter API :(\nStatus Code: {}\n{}'.format(
-                    status_code, res))
+                print('Error connecting to the Twitter API :(')
+            # load db
+            self.DB = TinyDB('data/db.json')
+            self.ACCOUNTS = self.DB.table('accounts')
+            self.updateAccountTable(Query())
 
     def fetch(self, endpoint, queryParams):
         headers = {"Authorization": "Bearer " + self.BEARER_TOKEN}
         res = requests.get(endpoint, headers=headers, params=queryParams)
-        return res.status_code, res.json()
+        return res.json() if res.status_code == 200 else null
 
     def fetchUserData(self, username):
         params = {'usernames': username,
@@ -30,6 +33,15 @@ class Twitter:
                   'tweet.fields': 'author_id,created_at'}
         return self.fetch('https://api.twitter.com/2/users/by', params)
 
+    def updateAccountTable(self, FIELD):
+        for accountEntry in self.ACCOUNTS:
+            handle = accountEntry['handle']
+            data = self.fetchUserData(handle)
+            if data:
+                data = data['data'][0]
+                accountEntry['name'] = data['name']
+                accountEntry['id'] = data['name']
+                self.ACCOUNTS.upsert(accountEntry, FIELD.handle == handle)
 
 if __name__ == "__main__":
     Twitter()

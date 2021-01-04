@@ -27,25 +27,15 @@ TWITTER_CREDENTIALS = {
 }
 DB_PATH = 'data/db.json'
 
+
 def init_credential_file(path, contents):
     f = open(path, 'w')
     f.write(contents)
     f.close()
     print("FILL IN CREDENTIALS AT " + path + ", THEN RERUN SETUP")
 
+
 if __name__ == "__main__":
-    #gmail auth
-    if not path.exists(GMAIL_CONFIG_PATH):
-        init_credential_file(GMAIL_CONFIG_PATH, GMAIL_CREDENTIALS)
-    else:
-        Gmail.Gmail()
-
-    #twitter auth
-    if not path.exists(TWITTER_CONFIG_PATH):
-        init_credential_file(TWITTER_CONFIG_PATH, TWITTER_CREDENTIALS)
-    else:
-        Twitter.Twitter()
-
     # db init
     if not path.exists(DB_PATH):
         if not path.isdir('./data/'):
@@ -57,5 +47,17 @@ if __name__ == "__main__":
     accounts_table = db.table('accounts')
     with open('./config/config.json') as config:
         config = json.load(config)
-        accounts_table.insert_multiple([{'handle': handle} for handle in config['accounts']])
+        accounts_table.insert_multiple(
+            [{'handle': handle} for handle in config['accounts']])
 
+    # gmail auth
+    if not path.exists(GMAIL_CONFIG_PATH):
+        init_credential_file(GMAIL_CONFIG_PATH, GMAIL_CREDENTIALS)
+    else:
+        Gmail.Gmail()
+
+    # twitter auth
+    if not path.exists(TWITTER_CONFIG_PATH):
+        init_credential_file(TWITTER_CONFIG_PATH, TWITTER_CREDENTIALS)
+    else:
+        Twitter.Twitter()
