@@ -43,8 +43,13 @@ if __name__ == "__main__":
         f = open(DB_PATH, 'w')
         f.write('')
         f.close()
+    
+    # init account and tweet tables
     db = TinyDB(DB_PATH)
     accounts_table = db.table('accounts')
+    tweets_table = db.table('tweets')
+
+    # init accounts table with starter twitter handles
     with open('./config/config.json') as config:
         config = json.load(config)
         accounts_table.insert_multiple(
