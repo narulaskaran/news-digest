@@ -39,6 +39,7 @@ def fetchLatestTweets(twitter, db):
     # insert new entry into tweets table
     db.table(TWEETS_TABLE).insert(tweets)
 
+# Returns true if old timestamp is from > 24 hours ago, false otherwise
 def timestampExpired(old, now=time.time()):
     return (now - old) > SECONDS_PER_DAY
 

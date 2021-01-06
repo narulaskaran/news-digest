@@ -4,10 +4,10 @@
 Run `python3 ./setup.py` from the root directory. This script will initialize config files for the Twitter and Gmail APIs in the `./config` folder and create a new database directory for document storage. Fill in the credentials for both and rerun the setup script. It will authenticate you with Gmail and then make a sample request to Twitter to verify the setup. 
 
 # How to Run
-
+Run `python3 ./run.py` from the root directory.
 
 # System Overview
-
+More to come...
 
 # Resources
 ## Clustering and Sentiment Analysis
