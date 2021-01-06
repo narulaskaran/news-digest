@@ -1,9 +1,14 @@
+# personal packages
 import Twitter
 import Gmail
-import sklearn
+import Tweet
+# db packages
 from tinydb import TinyDB, Query
 import time
+# data/ML packages
+import sklearn
 
+# constants
 DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
@@ -43,6 +48,25 @@ def fetchLatestTweets(twitter, db):
 def timestampExpired(old, now=time.time()):
     return (now - old) > SECONDS_PER_DAY
 
+# Sanitizes text by removing special unicode and lowering case
+def pre_process(text):
+    text = text.lower()
+    text = text.encode('ascii', 'ignore').decode("utf-8")
+    return text
+
+def parseTweets(db):
+    # get most recent set of tweets
+    tweets_table = db.table(TWEETS_TABLE)
+    tweets_table = tweets_table.get(doc_id=len(tweets_table))
+    if 'tweets' not in tweets_table.keys():
+        return None
+    tweets_table = tweets_table['tweets']
+    tweets = []
+    for entry in tweets_table:
+        handle = entry['handle']
+        tweets.append([Tweet.Tweet(handle,pre_process(tweet)) for tweet in entry['tweets']])
+    return tweets
+
 def extractKeywords():
     pass
 
@@ -65,6 +89,9 @@ if __name__ == "__main__":
     db = TinyDB(DATABASE_PATH)
 
     fetchLatestTweets(twitter, db)
+
+    # Process data
+    dataset = parseTweets(db)
 
     # Extract category names from tweets
 
