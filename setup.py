@@ -3,6 +3,7 @@ import Gmail
 import Twitter
 from tinydb import TinyDB
 import json
+from urllib import request
 
 GMAIL_CONFIG_PATH = 'config/gmail-credentials.json'
 GMAIL_CREDENTIALS = {
@@ -26,6 +27,7 @@ TWITTER_CREDENTIALS = {
     "bearer-token": "INSERT HERE"
 }
 DB_PATH = 'data/db.json'
+STOP_WORD_LIST_URL = 'https://raw.githubusercontent.com/kavgan/stop-words/master/minimal-stop.txt'
 
 
 def init_credential_file(path, contents):
@@ -66,3 +68,6 @@ if __name__ == "__main__":
         init_credential_file(TWITTER_CONFIG_PATH, TWITTER_CREDENTIALS)
     else:
         Twitter.Twitter()
+
+    # download stop-word list
+    request.urlretrieve(STOP_WORD_LIST_URL, 'data/stop-words.txt')
