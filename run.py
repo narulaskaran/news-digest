@@ -9,9 +9,9 @@ TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
 
-# Checks whether cached tweets are from > 24 hours ago.
-# If tweets are older than 24 hours, wipes current cache and
-# fetches new data from Twitter
+# Checks whether last-fetched tweets are from > 24 hours ago.
+# If tweets are older than 24 hours, fetches the latest ones from Twitter
+#   and inserts them into the database
 def fetchLatestTweets(twitter, db):
     # check timestamp
     tweets_table = db.table(TWEETS_TABLE)
