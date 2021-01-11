@@ -6,7 +6,8 @@ import Tweet
 from tinydb import TinyDB, Query
 import time
 # data/ML packages
-import sklearn
+from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
 
 # constants
 DATABASE_PATH = 'data/db.json'
@@ -35,7 +36,7 @@ def fetchLatestTweets(twitter, db):
         handle = user.get('handle')
         # fetch tweets
         res = twitter.fetchTweets(handle)
-        if res is not None:
+        if res is not None and 'data' in res.keys():
             # add tweets to dict
             tweets['tweets'].append({
                 'handle': handle,
@@ -67,10 +68,20 @@ def parseTweets(db):
         tweets.append([Tweet.Tweet(handle,pre_process(tweet)) for tweet in entry['tweets']])
     return tweets
 
-def extractKeywords():
-    pass
-
-
+def extractKeywords(dataset):
+    # compile list of all tweet content
+    corpus = []
+    for user_tweets in dataset:
+        for tweet in user_tweets:
+            # remove non alpha tokens
+            text = tweet.content.split()
+            text = list(filter(lambda token: token.isalpha(), text))
+            corpus.append(" ".join(text))
+    # vectorize dataset and return features
+    vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=500)
+    feature_matrix = vectorizer.fit_transform(corpus)
+    return vectorizer.get_feature_names(), feature_matrix
+    
 def clusterTweets():
     pass
 
@@ -94,8 +105,10 @@ if __name__ == "__main__":
     dataset = parseTweets(db)
 
     # Extract category names from tweets
+    keywords, matrix = extractKeywords(dataset)
 
     # Cluster tweets
+    clusterTweets(keywords, matrix, dataset)
 
     # Score clusters
 
