@@ -14,6 +14,7 @@ DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
+MAX_KEYWORDS = 500
 
 # Checks whether last-fetched tweets are from > 24 hours ago.
 # If tweets are older than 24 hours, fetches the latest ones from Twitter
@@ -78,7 +79,7 @@ def extractKeywords(dataset):
             text = list(filter(lambda token: token.isalpha(), text))
             corpus.append(" ".join(text))
     # vectorize dataset and return features
-    vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=500)
+    vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=MAX_KEYWORDS)
     feature_matrix = vectorizer.fit_transform(corpus)
     return vectorizer.get_feature_names(), feature_matrix
     
