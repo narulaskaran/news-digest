@@ -10,12 +10,15 @@ Run `python3 ./run.py` from the root directory.
 More to come...
 
 # Resources
-## Clustering and Sentiment Analysis
+## Keyword Extraction and Sentiment Analysis
 - [Bag-of-Words modeling](https://machinelearningmastery.com/gentle-introduction-bag-words-model/)
-- [Dynamic clustering](https://towardsdatascience.com/10-tips-for-choosing-the-optimal-number-of-clusters-277e93d72d92)
+- [Keyword extraction with scikit-learn](https://kavita-ganesan.com/extracting-keywords-from-text-tfidf/)
 - [What is sentiment analysis](https://monkeylearn.com/sentiment-analysis/)
 - [Classifying tweets for sentiment analysis](https://medium.com/vickdata/detecting-hate-speech-in-tweets-natural-language-processing-in-python-for-beginners-4e591952223)
 - [Trend detection in social streams](https://youtu.be/duHxpSTmwW0)
+## Clustering
+- [Dynamic clustering](https://towardsdatascience.com/10-tips-for-choosing-the-optimal-number-of-clusters-277e93d72d92)
+- [Plotting clusters for multivariate data](https://stats.stackexchange.com/questions/52625/visually-plotting-multi-dimensional-cluster-data)
 ## News Sources
 - [Top 30 twitter news accounts](https://intellfusion.medium.com/30-must-follow-twitter-accounts-for-news-in-2019-e981595759a5)
 ## Twitter API Documentation 
