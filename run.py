@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+import matplotlib.pyplot as plt
 import numpy as np
 
 # constants
@@ -17,9 +18,9 @@ DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
-MAX_KEYWORDS = 500
+MAX_KEYWORDS = 100
 MIN_CLUSTERS = 3
-MAX_CLUSTERS = 15
+MAX_CLUSTERS = 100
 
 # Checks whether last-fetched tweets are from > 24 hours ago.
 # If tweets are older than 24 hours, fetches the latest ones from Twitter
@@ -90,7 +91,7 @@ def extractKeywords(dataset):
     
 def clusterTweets(keywords, matrix, dataset, num_clusters=8):
     # cluster and label each vector
-    km = KMeans(n_clusters=num_clusters).fit(matrix)
+    km = KMeans(n_clusters=num_clusters, max_iter=1000).fit(matrix)
     labels = km.labels_
     # unwind one layer of dataset
     tweets = []
@@ -99,15 +100,22 @@ def clusterTweets(keywords, matrix, dataset, num_clusters=8):
     # make keywords index-able
     keywords = np.mat(keywords).T
     # compile list of keywords + tweets for each cluster
-    clustered_keywords = [set() for i in range(num_clusters)]
+    clustered_keywords = [{} for i in range(num_clusters)]
     clustered_tweets = [[] for i in range(num_clusters)]
     for tweet_idx in range(len(labels)):
         cluster_idx = labels[tweet_idx]
         words = keywords[matrix[tweet_idx].T.todense() == True]
         for word in words.flatten().tolist()[0]:
-            clustered_keywords[cluster_idx].add(word)
+            if word not in clustered_keywords[cluster_idx]:
+                clustered_keywords[cluster_idx][word] = 0
+            clustered_keywords[cluster_idx][word] += 1
         clustered_tweets[cluster_idx].append(tweets[tweet_idx])
-    return clustered_keywords, clustered_tweets, silhouette_score(matrix, km.labels_, metric='euclidean')
+    # choose top 3 keywords per cluster
+    for cluster_idx in range(len(clustered_keywords)):
+        lib = clustered_keywords[cluster_idx]
+        lib = sorted(lib, key=lambda k: lib[k])[:3]
+        clustered_keywords[cluster_idx] = set(lib)
+    return clustered_keywords, clustered_tweets, silhouette_score(matrix, km.labels_, metric='euclidean'), labels
 
 def calculateClusteringError():
     pass
@@ -138,23 +146,43 @@ if __name__ == "__main__":
     # Extract category names from tweets
     keywords, matrix = extractKeywords(dataset)
 
-    # Cluster tweets, multiple times to determine optimal number of clusters
+    # Cluster tweets with different numbers of clusters to determine optimal clustering
     num_clusters_to_results = {}
     for num_clusters in range(MIN_CLUSTERS, MAX_CLUSTERS):
         num_clusters_to_results[num_clusters] = clusterTweets(keywords, matrix, dataset, num_clusters=num_clusters)
 
     # Choose optimal clustering (one with highest silhouette score)
-    optimal_score = 0
+    # There is a chance that results will vary upon rerunning the program
+    #   as K-Means can get stuck in local minima
+    optimal_score = -np.infty
     optimal_num_clusters = MIN_CLUSTERS
     clustered_keywords = []
     clustered_tweets = []
+    plot_data = {
+                'num_clusters': [],
+                'silhouette_scores': [],
+                'labels': []
+                }
     for num_clusters in num_clusters_to_results.keys():
-        words, tweets, score = num_clusters_to_results.get(num_clusters)
+        words, tweets, score, labels = num_clusters_to_results.get(num_clusters)
+        # store data for plotting
+        plot_data['num_clusters'].append(num_clusters)
+        plot_data['silhouette_scores'].append(score)
+        plot_data['labels'].append(labels)
+        #check for optimal score
         if score > optimal_score:
             optimal_num_clusters = num_clusters
             clustered_keywords = words
             clustered_tweets = tweets
             optimal_score = score
+        
+    # Plot silhouette scores 
+    plt.plot(plot_data['num_clusters'], plot_data['silhouette_scores'])
+    plt.title('Silhouette Score vs Number of Clusters')
+    plt.savefig('figures/silhouette_scores.png')
+    plt.figure()
+
+    # Plot clusters
 
 
     # Label clusters
