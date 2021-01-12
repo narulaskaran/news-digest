@@ -19,8 +19,9 @@ TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 100
-MIN_CLUSTERS = 3
-MAX_CLUSTERS = 100
+MIN_CLUSTERS = 100
+MAX_CLUSTERS = 101
+CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 
 # Checks whether last-fetched tweets are from > 24 hours ago.
 # If tweets are older than 24 hours, fetches the latest ones from Twitter
@@ -113,12 +114,9 @@ def clusterTweets(keywords, matrix, dataset, num_clusters=8):
     # choose top 3 keywords per cluster
     for cluster_idx in range(len(clustered_keywords)):
         lib = clustered_keywords[cluster_idx]
-        lib = sorted(lib, key=lambda k: lib[k])[:3]
+        lib = sorted(lib, key=lambda k: lib[k])[:5]
         clustered_keywords[cluster_idx] = set(lib)
     return clustered_keywords, clustered_tweets, silhouette_score(matrix, km.labels_, metric='euclidean'), labels
-
-def calculateClusteringError():
-    pass
 
 def labelClusters():
     pass
@@ -158,6 +156,7 @@ if __name__ == "__main__":
     optimal_num_clusters = MIN_CLUSTERS
     clustered_keywords = []
     clustered_tweets = []
+    optimal_labels = []
     plot_data = {
                 'num_clusters': [],
                 'silhouette_scores': [],
@@ -175,6 +174,10 @@ if __name__ == "__main__":
             clustered_keywords = words
             clustered_tweets = tweets
             optimal_score = score
+            optimal_labels = labels
+
+    # Combine clusters by keyword
+
         
     # Plot silhouette scores 
     plt.plot(plot_data['num_clusters'], plot_data['silhouette_scores'])
@@ -182,8 +185,15 @@ if __name__ == "__main__":
     plt.savefig('figures/silhouette_scores.png')
     plt.figure()
 
-    # Plot clusters
+    # Reduce dataset to 2 axes via PCA
+    scaled_dataset = PCA(3).fit_transform(matrix.todense())
 
+    # Plot clusters
+    for cluster_idx in range(optimal_num_clusters):
+        cluster_points = scaled_dataset[labels == cluster_idx]
+        plt.scatter(cluster_points[:,0], cluster_points[:,1], color=CLUSTER_COLORS[cluster_idx])
+    plt.savefig('figures/cluster_visualization.png')
+    plt.figure()
 
     # Label clusters
     labelClusters()
