@@ -18,7 +18,7 @@ DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
-MAX_KEYWORDS = 100
+MAX_KEYWORDS = 1000
 MIN_CLUSTERS = 100
 MAX_CLUSTERS = 101
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
@@ -176,7 +176,17 @@ if __name__ == "__main__":
             optimal_score = score
             optimal_labels = labels
 
-    # Combine clusters by keyword
+    # Merge clusters with common keywords
+    merged_keywords = [set() for x in clustered_keywords]
+    for word_set in clustered_keywords:
+        for cluster_idx in range(len(merged_keywords)):
+            merge_set = merged_keywords[cluster_idx]
+            if len(merge_set) == 0 or len(merge_set.intersection(word_set)) > 0:
+                merged_keywords[cluster_idx] = merge_set.union(word_set)
+                break
+    merged_keywords = list(filter(lambda x: len(x) > 0, merged_keywords))
+
+    # 
 
         
     # Plot silhouette scores 
