@@ -89,15 +89,20 @@ def extractKeywords(dataset):
     vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=MAX_KEYWORDS)
     feature_matrix = vectorizer.fit_transform(corpus)
     return vectorizer.get_feature_names(), feature_matrix
+
+# Takes a nested list and collapses it by one degree
+def collapseNestedList(nested):
+    flattened = []
+    for element in nested:
+        flattened += element
+    return flattened
     
 def clusterTweets(keywords, matrix, dataset, num_clusters=8):
     # cluster and label each vector
     km = KMeans(n_clusters=num_clusters, max_iter=1000).fit(matrix)
     labels = km.labels_
     # unwind one layer of dataset
-    tweets = []
-    for user in dataset:
-        tweets += user
+    tweets = collapseNestedList(dataset)
     # make keywords index-able
     keywords = np.mat(keywords).T
     # compile list of keywords + tweets for each cluster
@@ -186,8 +191,41 @@ if __name__ == "__main__":
                 break
     merged_keywords = list(filter(lambda x: len(x) > 0, merged_keywords))
 
-    # 
+    # Inverse lookup from keyword to cluster
+    lookup = {}
+    for cluster_idx in range(len(merged_keywords)):
+        for word in merged_keywords[cluster_idx]:
+            lookup[word] = cluster_idx
+    
+    # Re-classify tweets
+    num_clusters = len(merged_keywords)
+    tweets = collapseNestedList(dataset)
+    cluster_counts = [0 for i in range(num_clusters)]
+    for tweet_idx in range(len(tweets)):
+        tweet = tweets[tweet_idx]
+        cluster_votes = {}
+        for i in range(num_clusters):
+            cluster_votes[i] = 0
+        for word in tweet.content.split():
+            if word in lookup.keys():
+                cluster_votes[lookup[word]] += 1
+        # top voted cluster
+        cluster_assignment = 0
+        max_votes = cluster_votes[cluster_assignment]
+        for k in cluster_votes.keys():
+            v = cluster_votes[k]
+            if v > max_votes:
+                cluster_assignment = k
+                max_votes = v
+        # update cluster labels for all tweets
+        labels[tweet_idx] = cluster_assignment
+        cluster_counts[cluster_assignment] += 1
 
+    # Filter top 6 clusters
+    cluster_counts = [(i, cluster_counts[i]) for i in range(len(cluster_counts))]
+    cluster_counts = sorted(cluster_counts, key=lambda wrapper: wrapper[1])
+    cluster_counts.reverse()
+    clusters = [x[0] for x in cluster_counts[:6]]
         
     # Plot silhouette scores 
     plt.plot(plot_data['num_clusters'], plot_data['silhouette_scores'])
@@ -199,15 +237,12 @@ if __name__ == "__main__":
     scaled_dataset = PCA(3).fit_transform(matrix.todense())
 
     # Plot clusters
-    for cluster_idx in range(optimal_num_clusters):
-        cluster_points = scaled_dataset[labels == cluster_idx]
+    for cluster_idx in range(len(clusters)):
+        cluster_points = scaled_dataset[labels == clusters[cluster_idx]]
         plt.scatter(cluster_points[:,0], cluster_points[:,1], color=CLUSTER_COLORS[cluster_idx])
     plt.savefig('figures/cluster_visualization.png')
     plt.figure()
 
-    # Label clusters
-    labelClusters()
-
-    # Score clusters
+    # Generate email
 
     # Send email
