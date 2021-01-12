@@ -28,6 +28,7 @@ TWITTER_CREDENTIALS = {
 }
 DB_PATH = 'data/db.json'
 STOP_WORD_LIST_URL = 'https://raw.githubusercontent.com/kavgan/stop-words/master/minimal-stop.txt'
+FIGURES_DIR_PATH = 'figures'
 
 
 def init_credential_file(path, contents):
@@ -71,3 +72,7 @@ if __name__ == "__main__":
 
     # download stop-word list
     request.urlretrieve(STOP_WORD_LIST_URL, 'data/stop-words.txt')
+
+    # create dir for figures
+    if not path.isdir(FIGURES_DIR_PATH):
+        mkdir(FIGURES_DIR_PATH)
