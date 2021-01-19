@@ -17,6 +17,7 @@ import numpy as np
 DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
+TWEET_URL_PATTERN = 'twitter.com/{handle}/status/{id}'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
@@ -112,110 +113,11 @@ if __name__ == "__main__":
     # Fetch tweets from last 24 hours
     fetchLatestTweets(twitter, db)
 
-    # Parse latest tweets and read them in as List[Tweet]
+    # Read in tweets as List[Tweet]
     dataset = parseTweets(db)
 
-    # Extract category names from tweets
-    keywords, matrix = extractKeywords(dataset)
-
-    # Cluster tweets with different numbers of clusters to determine optimal clustering
-    num_clusters_to_results = {}
-    for num_clusters in range(MIN_CLUSTERS, MAX_CLUSTERS):
-        num_clusters_to_results[num_clusters] = clusterTweets(keywords, matrix, dataset, num_clusters=num_clusters)
-
-    # Choose optimal clustering (one with highest silhouette score)
-    # There is a chance that results will vary upon rerunning the program
-    #   as K-Means can get stuck in local minima
-    optimal_score = -np.infty
-    optimal_num_clusters = MIN_CLUSTERS
-    clustered_keywords = []
-    clustered_tweets = []
-    optimal_labels = []
-    plot_data = {
-                'num_clusters': [],
-                'silhouette_scores': [],
-                'labels': []
-                }
-    for num_clusters in num_clusters_to_results.keys():
-        words, tweets, score, labels = num_clusters_to_results.get(num_clusters)
-        # store data for plotting
-        plot_data['num_clusters'].append(num_clusters)
-        plot_data['silhouette_scores'].append(score)
-        plot_data['labels'].append(labels)
-        #check for optimal score
-        if score > optimal_score:
-            optimal_num_clusters = num_clusters
-            clustered_keywords = words
-            clustered_tweets = tweets
-            optimal_score = score
-            optimal_labels = labels
-
-    # Merge clusters with common keywords
-    merged_keywords = [set() for x in clustered_keywords]
-    for word_set in clustered_keywords:
-        for cluster_idx in range(len(merged_keywords)):
-            merge_set = merged_keywords[cluster_idx]
-            if len(merge_set) == 0 or len(merge_set.intersection(word_set)) > 0:
-                merged_keywords[cluster_idx] = merge_set.union(word_set)
-                break
-    merged_keywords = list(filter(lambda x: len(x) > 0, merged_keywords))
-
-    # Inverse lookup from keyword to cluster
-    lookup = {}
-    for cluster_idx in range(len(merged_keywords)):
-        for word in merged_keywords[cluster_idx]:
-            lookup[word] = cluster_idx
-    
-    # Re-classify tweets
-    num_clusters = len(merged_keywords)
-    tweets = collapseNestedList(dataset)
-    cluster_counts = [0 for i in range(num_clusters)]
-    for tweet_idx in range(len(tweets)):
-        tweet = tweets[tweet_idx]
-        cluster_votes = {}
-        for i in range(num_clusters):
-            cluster_votes[i] = 0
-        for word in tweet.content.split():
-            if word in lookup.keys():
-                cluster_votes[lookup[word]] += 1
-        # top voted cluster
-        cluster_assignment = 0
-        max_votes = cluster_votes[cluster_assignment]
-        for k in cluster_votes.keys():
-            v = cluster_votes[k]
-            if v > max_votes:
-                cluster_assignment = k
-                max_votes = v
-        # update cluster labels for all tweets
-        labels[tweet_idx] = cluster_assignment
-        cluster_counts[cluster_assignment] += 1
-
-    # Filter top 6 clusters
-    cluster_counts = [(i, cluster_counts[i]) for i in range(len(cluster_counts))]
-    cluster_counts = sorted(cluster_counts, key=lambda wrapper: wrapper[1])
-    cluster_counts.reverse()
-    clusters = [x[0] for x in cluster_counts[:6]]
-        
-    # Plot silhouette scores 
-    plt.plot(plot_data['num_clusters'], plot_data['silhouette_scores'])
-    plt.title('Silhouette Score vs Number of Clusters')
-    plt.savefig('figures/silhouette_scores.png')
-    plt.figure()
-
-    # Reduce dataset to 2 axes via PCA
-    scaled_dataset = PCA(3).fit_transform(matrix.todense())
-
-    # Plot clusters
-    for cluster_idx in range(len(clusters)):
-        cluster_points = scaled_dataset[labels == clusters[cluster_idx]]
-        plt.scatter(cluster_points[:,0], cluster_points[:,1], color=CLUSTER_COLORS[cluster_idx])
-    plt.savefig('figures/{}_keyword_clustering.png'.format(MAX_KEYWORDS))
-    plt.figure()
-
-    # Print out cluster keywords for sanity check
-    for cluster in clusters:
-        print('\n############ CLUSTER {} ############'.format(cluster))
-        print(merged_keywords[cluster])
+    # Extract keywords
+    keywords = extractKeywords(dataset)
 
     # Generate email
 
