@@ -90,8 +90,8 @@ def extractKeywords(dataset, max_keywords=MAX_KEYWORDS):
     corpus = [tweet.content for tweet in dataset]
     # vectorize dataset and identify keywords
     vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=max_keywords)
-    feature_matrix = vectorizer.fit_transform(corpus)
-    return vectorizer.get_feature_names(), feature_matrix
+    vectorizer.fit_transform(corpus)
+    return vectorizer.get_feature_names()
 
 # Trains W2V model from tweet dataset
 def trainModel(dataset):
@@ -134,7 +134,7 @@ def determineTopics(graph):
         for neighbor in graph[keyword][:6]:
             neighbors.add(neighbor[0])
         groupings[keyword] = neighbors
-    # merge overlapping groups
+    # merge groups if they have 3 or more overlapping keywords
     clusters = []
     for keyword in groupings:
         group = groupings[keyword]
@@ -149,8 +149,8 @@ def determineTopics(graph):
             clusters.append(group)
     return clusters
 
-# Sorts tweets into clusters based on semantic similarity
-def genClusters():
+# Sorts tweets into clusters
+def categorizeTweets(clusters, dataset):
     pass
 
 def plotClusters():
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     dataset = parseTweets(db)
 
     # Extract keywords
-    keywords, feature_matrix = extractKeywords(dataset)
+    keywords = extractKeywords(dataset)
 
     # Build vocab and train model
     model = trainModel(dataset)
@@ -186,10 +186,9 @@ if __name__ == "__main__":
 
     # Break tweets up into distinct topics based on keyword relaitonships
     clusters = determineTopics(graph)
-    print(clusters)
 
     # Categorize tweets into topics
-    # clusters = categorizeTweets()
+    sortedTweets = categorizeTweets(clusters, dataset)
     
     # Generate email
 
