@@ -1,25 +1,27 @@
-# personal packages
+# Personal packages
 import Twitter
 import Gmail
 import Tweet
-# db packages
+# DB packages
 from tinydb import TinyDB, Query
 import time
-# data/ML packages
+# Data/ML packages
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 import numpy as np
+from gensim.models import Word2Vec
+# System packages
+import multiprocessing
 
-# constants
+# Constants
 DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 TWEET_URL_PATTERN = 'twitter.com/{handle}/status/{id}'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
+NUM_CORES = multiprocessing.cpu_count()
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 CUSTOM_STOP_WORDS = {'rt'}
 
@@ -91,6 +93,20 @@ def extractKeywords(dataset, max_keywords=MAX_KEYWORDS):
     vectorizer.fit_transform(corpus)
     return vectorizer.get_feature_names()
 
+def trainModel(dataset):
+    corpus = [tweet.content.split() for tweet in dataset]
+    w2v_model = Word2Vec(min_count=20,
+                     window=2,
+                     size=300,
+                     sample=6e-5, 
+                     alpha=0.03, 
+                     min_alpha=0.0007, 
+                     negative=20,
+                     workers=NUM_CORES-1)
+    w2v_model.build_vocab(corpus, progress_per=1000)
+    w2v_model.train(corpus, total_examples=w2v_model.corpus_count, epochs=500, report_delay=1)
+    return w2v_model
+
 def labelClusters():
     pass
 
@@ -119,6 +135,11 @@ if __name__ == "__main__":
     # Extract keywords
     keywords = extractKeywords(dataset)
 
+    # Build vocab and train model
+    model = trainModel(dataset)
+
+    # Cluster + categorize tweets
+    
     # Generate email
 
     # Send email
