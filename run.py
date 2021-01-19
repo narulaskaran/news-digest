@@ -19,8 +19,6 @@ TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
-MIN_CLUSTERS = 100
-MAX_CLUSTERS = 101
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 CUSTOM_STOP_WORDS = {'rt'}
 
@@ -83,52 +81,14 @@ def parseTweets(db):
                     tweet['id']) for tweet in entry['tweets']]
     return tweets
 
-def extractKeywords(dataset):
+# Extracts top keywords from the dataset
+def extractKeywords(dataset, max_keywords=MAX_KEYWORDS):
     # compile list of all tweet content
-    corpus = []
-    for user_tweets in dataset:
-        for tweet in user_tweets:
-            # remove non alpha tokens
-            text = tweet.content.split()
-            text = list(filter(lambda token: token.isalpha(), text))
-            corpus.append(" ".join(text))
-    # vectorize dataset and return features
-    vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=MAX_KEYWORDS)
-    feature_matrix = vectorizer.fit_transform(corpus)
-    return vectorizer.get_feature_names(), feature_matrix
-
-# Takes a nested list and collapses it by one degree
-def collapseNestedList(nested):
-    flattened = []
-    for element in nested:
-        flattened += element
-    return flattened
-    
-def clusterTweets(keywords, matrix, dataset, num_clusters=8):
-    # cluster and label each vector
-    km = KMeans(n_clusters=num_clusters, max_iter=1000).fit(matrix)
-    labels = km.labels_
-    # unwind one layer of dataset
-    tweets = collapseNestedList(dataset)
-    # make keywords index-able
-    keywords = np.mat(keywords).T
-    # compile list of keywords + tweets for each cluster
-    clustered_keywords = [{} for i in range(num_clusters)]
-    clustered_tweets = [[] for i in range(num_clusters)]
-    for tweet_idx in range(len(labels)):
-        cluster_idx = labels[tweet_idx]
-        words = keywords[matrix[tweet_idx].T.todense() == True]
-        for word in words.flatten().tolist()[0]:
-            if word not in clustered_keywords[cluster_idx]:
-                clustered_keywords[cluster_idx][word] = 0
-            clustered_keywords[cluster_idx][word] += 1
-        clustered_tweets[cluster_idx].append(tweets[tweet_idx])
-    # choose top 3 keywords per cluster
-    for cluster_idx in range(len(clustered_keywords)):
-        lib = clustered_keywords[cluster_idx]
-        lib = sorted(lib, key=lambda k: lib[k])[:5]
-        clustered_keywords[cluster_idx] = set(lib)
-    return clustered_keywords, clustered_tweets, silhouette_score(matrix, km.labels_, metric='euclidean'), labels
+    corpus = [tweet.content for tweet in dataset]
+    # vectorize dataset and identify keywords
+    vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=max_keywords)
+    vectorizer.fit_transform(corpus)
+    return vectorizer.get_feature_names()
 
 def labelClusters():
     pass
@@ -144,13 +104,15 @@ def draftEmail():
 
 
 if __name__ == "__main__":
-    twitter = Twitter.Twitter()  # init twitter
-    gmail = Gmail.Gmail()   # init gmail
+    # Init
+    twitter = Twitter.Twitter()
+    gmail = Gmail.Gmail()
     db = TinyDB(DATABASE_PATH)
 
+    # Fetch tweets from last 24 hours
     fetchLatestTweets(twitter, db)
 
-    # Process data
+    # Parse latest tweets and read them in as List[Tweet]
     dataset = parseTweets(db)
 
     # Extract category names from tweets
