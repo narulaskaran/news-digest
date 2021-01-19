@@ -90,9 +90,10 @@ def extractKeywords(dataset, max_keywords=MAX_KEYWORDS):
     corpus = [tweet.content for tweet in dataset]
     # vectorize dataset and identify keywords
     vectorizer = CountVectorizer(max_df=0.85, stop_words='english', max_features=max_keywords)
-    vectorizer.fit_transform(corpus)
-    return vectorizer.get_feature_names()
+    feature_matrix = vectorizer.fit_transform(corpus)
+    return vectorizer.get_feature_names(), feature_matrix
 
+# Trains W2V model from tweet dataset
 def trainModel(dataset):
     corpus = [tweet.content.split() for tweet in dataset]
     w2v_model = Word2Vec(min_count=20,
@@ -107,7 +108,25 @@ def trainModel(dataset):
     w2v_model.train(corpus, total_examples=w2v_model.corpus_count, epochs=500, report_delay=1)
     return w2v_model
 
-def labelClusters():
+# Creates a weighted simiarlity graph based on keywords and w2v model
+def genSemanticGraph(model, keywords):
+    # filter out keywords not in the vocabulary
+    keywords = list(filter(lambda word: model.wv.__contains__(word), keywords))
+    # gen graph
+    graph = {}
+    for src in keywords:
+        graph[src] = {}
+        for dest in keywords:
+            if src != dest:
+                graph[src][dest] = model.similarity(src, dest)
+    # sort keys for each source node by weight
+    for key in graph.keys():
+        children = graph[key]
+        graph[key] = sorted(children, key=lambda k: children.get(k), reverse=True)
+    return graph
+
+# Sorts tweets into clusters based on semantic similarity
+def genClusters(keywords, matrix, graph):
     pass
 
 def plotClusters():
@@ -133,12 +152,16 @@ if __name__ == "__main__":
     dataset = parseTweets(db)
 
     # Extract keywords
-    keywords = extractKeywords(dataset)
+    keywords, feature_matrix = extractKeywords(dataset)
 
     # Build vocab and train model
     model = trainModel(dataset)
 
+    # Build semantic graph of keyword similarity
+    graph = genSemanticGraph(model, keywords)
+
     # Cluster + categorize tweets
+    clusters = genClusters(keywords, feature_matrix, graph)
     
     # Generate email
 
