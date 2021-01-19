@@ -78,7 +78,9 @@ def parseTweets(db):
     tweets = []
     for entry in tweets_table:
         handle = entry['handle']
-        tweets.append([Tweet.Tweet(handle,sanitize(tweet['text']), tweet['id']) for tweet in entry['tweets']])
+        tweets += [Tweet.Tweet(handle,
+                    sanitize(tweet['text']),
+                    tweet['id']) for tweet in entry['tweets']]
     return tweets
 
 def extractKeywords(dataset):
