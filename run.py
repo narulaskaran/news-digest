@@ -22,6 +22,7 @@ MAX_KEYWORDS = 1000
 MIN_CLUSTERS = 100
 MAX_CLUSTERS = 101
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
+CUSTOM_STOP_WORDS = {'rt'}
 
 # Checks whether last-fetched tweets are from > 24 hours ago.
 # If tweets are older than 24 hours, fetches the latest ones from Twitter
@@ -48,7 +49,7 @@ def fetchLatestTweets(twitter, db):
             # add tweets to dict
             tweets['tweets'].append({
                 'handle': handle,
-                'tweets': [entry['text'] for entry in res['data']]
+                'tweets': [{'id': entry['id'], 'text': entry['text']} for entry in res['data']]
             })
     # insert new entry into tweets table
     db.table(TWEETS_TABLE).insert(tweets)
@@ -58,13 +59,17 @@ def timestampExpired(old, now=time.time()):
     return (now - old) > SECONDS_PER_DAY
 
 # Sanitizes text by removing special unicode and lowering case
-def pre_process(text):
+def sanitize(text):
     text = text.lower()
+    # remove weird unicode characters
     text = text.encode('ascii', 'ignore').decode("utf-8")
-    return text
+    # remove non alpha tokens and custom stop words
+    text = text.split()
+    text = list(filter(lambda token: token.isalpha() and token not in CUSTOM_STOP_WORDS, text))
+    return " ".join(text)
 
+# Reads most recent tweets from the database and returns them as a list
 def parseTweets(db):
-    # get most recent set of tweets
     tweets_table = db.table(TWEETS_TABLE)
     tweets_table = tweets_table.get(doc_id=len(tweets_table))
     if 'tweets' not in tweets_table.keys():
@@ -240,8 +245,13 @@ if __name__ == "__main__":
     for cluster_idx in range(len(clusters)):
         cluster_points = scaled_dataset[labels == clusters[cluster_idx]]
         plt.scatter(cluster_points[:,0], cluster_points[:,1], color=CLUSTER_COLORS[cluster_idx])
-    plt.savefig('figures/cluster_visualization.png')
+    plt.savefig('figures/{}_keyword_clustering.png'.format(MAX_KEYWORDS))
     plt.figure()
+
+    # Print out cluster keywords for sanity check
+    for cluster in clusters:
+        print('\n############ CLUSTER {} ############'.format(cluster))
+        print(merged_keywords[cluster])
 
     # Generate email
 
