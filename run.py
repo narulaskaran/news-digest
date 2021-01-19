@@ -122,11 +122,35 @@ def genSemanticGraph(model, keywords):
     # sort keys for each source node by weight
     for key in graph.keys():
         children = graph[key]
-        graph[key] = sorted(children, key=lambda k: children.get(k), reverse=True)
+        graph[key] = [(key, children[key]) for key in sorted(children, key=lambda k: children.get(k), reverse=True)]
     return graph
 
+def determineTopics(graph):
+    # pick out top neighbors for all keywords in the graph
+    # {keyword --> set{related keywords}}
+    groupings = {}
+    for keyword in graph:
+        neighbors = set()
+        for neighbor in graph[keyword][:6]:
+            neighbors.add(neighbor[0])
+        groupings[keyword] = neighbors
+    # merge overlapping groups
+    clusters = []
+    for keyword in groupings:
+        group = groupings[keyword]
+        merged = False
+        for cluster in clusters:
+            if len(group.intersection(cluster)) > 2:
+                for x in group:
+                    cluster.add(x)
+                merged = True
+                break
+        if not merged:
+            clusters.append(group)
+    return clusters
+
 # Sorts tweets into clusters based on semantic similarity
-def genClusters(keywords, matrix, graph):
+def genClusters():
     pass
 
 def plotClusters():
@@ -160,8 +184,12 @@ if __name__ == "__main__":
     # Build semantic graph of keyword similarity
     graph = genSemanticGraph(model, keywords)
 
-    # Cluster + categorize tweets
-    clusters = genClusters(keywords, feature_matrix, graph)
+    # Break tweets up into distinct topics based on keyword relaitonships
+    clusters = determineTopics(graph)
+    print(clusters)
+
+    # Categorize tweets into topics
+    # clusters = categorizeTweets()
     
     # Generate email
 
