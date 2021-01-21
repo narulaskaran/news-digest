@@ -23,6 +23,7 @@ SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
 NUM_MATCHING_KEYWORDS_PER_GROUP = 3
 NUM_TOPICS_TO_SELECT = 4
+NUM_KEYWORDS_PER_GROUP = 5
 NUM_CORES = multiprocessing.cpu_count()
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 CUSTOM_STOP_WORDS = {'rt'}
@@ -175,6 +176,22 @@ def filterClusters(clusters, clusteredTweets, n=NUM_TOPICS_TO_SELECT):
         filteredClusters.append((clusters[idx], clusteredTweets[idx]))
     return filteredClusters
 
+def genTightestNodesPerCluster(model, clusterTopics, n=NUM_KEYWORDS_PER_GROUP):
+    topKeywords = []
+    for cluster in clusterTopics:
+        # score each node
+        scores = {}
+        for nodeA in cluster:
+            score = 0
+            for nodeB in cluster:
+                if nodeA == nodeB:
+                    continue
+                score += model.wv.similarity(nodeA, nodeB)
+            scores[nodeA] = score
+        # choose top n nodes
+        topKeywords.append(sorted(sorted(scores, key=lambda k: scores[k], reverse=True)[:n]))
+    return topKeywords
+
 def plotClusters():
     pass
 
@@ -211,8 +228,12 @@ if __name__ == "__main__":
 
     # Choose top n clusters of tweets
     # Type  --  List[Tuple(Set(), List[Tweet])]
-    sortedTweets = filterClusters(clusters, sortedTweets)
-    print(sortedTweets)
+    filteredSortedTweets = filterClusters(clusters, sortedTweets)
+
+    # Determine most important keywords per cluster (for email headings)
+    filteredTopics = [pair[0] for pair in filteredSortedTweets]
+    filteredTopics = genTightestNodesPerCluster(model, filteredTopics)
+    print(filteredTopics)
     
     # Generate email
 
