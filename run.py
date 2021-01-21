@@ -4,7 +4,6 @@ import Gmail
 import Tweet
 # DB packages
 from tinydb import TinyDB, Query
-import time
 # Data/ML packages
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.decomposition import PCA
@@ -13,6 +12,8 @@ import numpy as np
 from gensim.models import Word2Vec
 # System packages
 import multiprocessing
+import time
+from datetime import date
 
 # Constants
 DATABASE_PATH = 'data/db.json'
@@ -192,10 +193,7 @@ def genTightestNodesPerCluster(model, clusterTopics, n=NUM_KEYWORDS_PER_GROUP):
         topKeywords.append(sorted(sorted(scores, key=lambda k: scores[k], reverse=True)[:n]))
     return topKeywords
 
-def plotClusters():
-    pass
-
-def draftEmail():
+def draftEmail(topics, tweets):
     pass
 
 
@@ -233,8 +231,9 @@ if __name__ == "__main__":
     # Determine most important keywords per cluster (for email headings)
     filteredTopics = [pair[0] for pair in filteredSortedTweets]
     filteredTopics = genTightestNodesPerCluster(model, filteredTopics)
-    print(filteredTopics)
     
     # Generate email
+    emailBody = draftEmail(filteredTopics, filteredSortedTweets)
 
     # Send email
+    email = gmail.send_message('username@emailprovider.com', 'News Digest -- {}'.format(date.today()), emailBody)
