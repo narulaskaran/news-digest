@@ -2,6 +2,7 @@
 import Twitter
 import Gmail
 import Tweet
+import ConstructEmail
 # DB packages
 from tinydb import TinyDB, Query
 # Data/ML packages
@@ -19,7 +20,6 @@ from datetime import date
 DATABASE_PATH = 'data/db.json'
 TWEETS_TABLE = 'tweets'
 ACCOUNTS_TABLE = 'accounts'
-TWEET_URL_PATTERN = 'twitter.com/{handle}/status/{id}'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
 NUM_MATCHING_KEYWORDS_PER_GROUP = 3
@@ -193,10 +193,6 @@ def genTightestNodesPerCluster(model, clusterTopics, n=NUM_KEYWORDS_PER_GROUP):
         topKeywords.append(sorted(sorted(scores, key=lambda k: scores[k], reverse=True)[:n]))
     return topKeywords
 
-def draftEmail(topics, tweets):
-    pass
-
-
 if __name__ == "__main__":
     # Init
     twitter = Twitter.Twitter()
@@ -233,7 +229,7 @@ if __name__ == "__main__":
     filteredTopics = genTightestNodesPerCluster(model, filteredTopics)
     
     # Generate email
-    emailBody = draftEmail(filteredTopics, filteredSortedTweets)
+    emailConstructor = ConstructEmail.ConstructEmail(filteredTopics, filteredSortedTweets)
 
     # Send email
-    email = gmail.send_message('username@emailprovider.com', 'News Digest -- {}'.format(date.today()), emailBody)
+    email = gmail.send_message('narulaskaran@gmail.com', 'Twitter News Digest -- {}'.format(date.today()), emailConstructor.getEmailBody())

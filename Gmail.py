@@ -36,7 +36,7 @@ class Gmail:
     self.SERVICE = build('gmail', 'v1', credentials=creds)
 
   def create_message(self, email, subject, body):
-    message = MIMEText(body)
+    message = MIMEText(body, 'html')
     message['to'] = email
     message['from'] = self.SENDER_ADDRESS
     message['subject'] = subject
