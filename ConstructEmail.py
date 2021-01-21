@@ -16,6 +16,7 @@ class ConstructEmail:
                                     font-weight: bold;
                                     line-height: 16px;
                                     border-color: #eee #ddd #bbb;
+                                    background-color: rgba(29, 161, 242, 0.1);
                                     border-radius: 5px;
                                     border-style: solid;
                                     border-width: 1px;
@@ -42,6 +43,10 @@ class ConstructEmail:
                                 blockquote.twitter-tweet a:focus {{
                                     text-decoration: underline;
                                 }}
+
+                                blockquote.twitter-tweet h3 {{
+                                    color: blue;
+                                }}
                             </style>
                         </head>
                         <body>
@@ -50,7 +55,7 @@ class ConstructEmail:
                             </h1>
                             <p>
                                 Generated using tweet data from the last 24 hours.
-                                Find the list of accounts we use <a href='https://github.com/narulaskaran/news-digest/blob/main/config/config.json'>here.</a>
+                                Find the list of accounts I pull from <a href='https://github.com/narulaskaran/news-digest/blob/main/config/config.json'>here.</a>
                             </p>
                             <h1>
                                 News topics from yesterday
@@ -67,8 +72,8 @@ class ConstructEmail:
                                     <h2>
                                         {keywords}
                                     </h2>
-                                    <details>
-                                        <summary>See Tweets</summary>
+                                    <details style='display:flex'>
+                                        <summary></summary>
                                         {tweets}
                                     </details>
                                 """.format(keywords=', '.join(keywordsByCluster[idx]), tweets=self.serializeTweets(tweetsByCluster[idx])))
