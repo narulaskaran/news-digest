@@ -135,3 +135,4 @@ data/db.json
 data/stop-words.txt
 *.png
 nlp.py
+test.html
