@@ -74,7 +74,7 @@ def sanitize(text):
     return " ".join(text)
 
 # Reads most recent tweets from the database and returns them as a list
-def parseTweets(db):
+def parseTweets(db, shouldSanitize=False):
     tweets_table = db.table(TWEETS_TABLE)
     tweets_table = tweets_table.get(doc_id=len(tweets_table))
     if 'tweets' not in tweets_table.keys():
@@ -84,7 +84,7 @@ def parseTweets(db):
     for entry in tweets_table:
         handle = entry['handle']
         tweets += [Tweet.Tweet(handle,
-                    sanitize(tweet['text']),
+                    sanitize(tweet['text']) if shouldSanitize else tweet['text'],
                     tweet['id']) for tweet in entry['tweets']]
     return tweets
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     fetchLatestTweets(twitter, db)
 
     # Read in tweets as List[Tweet]
-    dataset = parseTweets(db)
+    dataset = parseTweets(db, shouldSanitize=True)
 
     # Extract keywords
     keywords = extractKeywords(dataset)
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     clusters = determineTopics(graph)
 
     # Categorize tweets into topics
-    sortedTweets = categorizeTweets(clusters, dataset)
+    sortedTweets = categorizeTweets(clusters, parseTweets(db, shouldSanitize=False))
 
     # Choose top n clusters of tweets
     # Type  --  List[Tuple(Set(), List[Tweet])]
