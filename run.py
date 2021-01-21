@@ -21,6 +21,8 @@ ACCOUNTS_TABLE = 'accounts'
 TWEET_URL_PATTERN = 'twitter.com/{handle}/status/{id}'
 SECONDS_PER_DAY = 86400
 MAX_KEYWORDS = 1000
+NUM_MATCHING_KEYWORDS_PER_GROUP = 3
+NUM_TOPICS_TO_SELECT = 4
 NUM_CORES = multiprocessing.cpu_count()
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 CUSTOM_STOP_WORDS = {'rt'}
@@ -118,13 +120,14 @@ def genSemanticGraph(model, keywords):
         graph[src] = {}
         for dest in keywords:
             if src != dest:
-                graph[src][dest] = model.similarity(src, dest)
+                graph[src][dest] = model.wv.similarity(src, dest)
     # sort keys for each source node by weight
     for key in graph.keys():
         children = graph[key]
         graph[key] = [(key, children[key]) for key in sorted(children, key=lambda k: children.get(k), reverse=True)]
     return graph
 
+# Clusters keywords into related groups
 def determineTopics(graph):
     # pick out top neighbors for all keywords in the graph
     # {keyword --> set{related keywords}}
@@ -140,7 +143,7 @@ def determineTopics(graph):
         group = groupings[keyword]
         merged = False
         for cluster in clusters:
-            if len(group.intersection(cluster)) > 2:
+            if len(group.intersection(cluster)) >= NUM_MATCHING_KEYWORDS_PER_GROUP:
                 for x in group:
                     cluster.add(x)
                 merged = True
@@ -151,12 +154,28 @@ def determineTopics(graph):
 
 # Sorts tweets into clusters
 def categorizeTweets(clusters, dataset):
-    pass
+    # for each tweet, count how many keywords it matches per cluster
+    # assign the tweet to the top cluster
+    clusteredTweets = [[] for cluster in clusters]
+    for tweet in dataset:
+        scores = [0 for i in range(len(clusters))]
+        text = tweet.content
+        for word in text.split():
+            for cluster_idx in range(len(clusters)):
+                scores[cluster_idx] += 1 if word in clusters[cluster_idx] else 0
+        max_cluster_idx = np.argmax(scores)
+        clusteredTweets[max_cluster_idx].append(tweet)
+    return clusteredTweets
+
+def filterClusters(clusters, clusteredTweets, n=NUM_TOPICS_TO_SELECT):
+    clusterCounts = [(idx, len(clusteredTweets[idx])) for idx in range(len(clusteredTweets))]
+    topicIndices = [el[0] for el in sorted(clusterCounts, key=lambda x: x[1], reverse=True)[:n]]
+    filteredClusters = []
+    for idx in topicIndices:
+        filteredClusters.append((clusters[idx], clusteredTweets[idx]))
+    return filteredClusters
 
 def plotClusters():
-    pass
-
-def filterClusters(n=4):
     pass
 
 def draftEmail():
@@ -189,6 +208,11 @@ if __name__ == "__main__":
 
     # Categorize tweets into topics
     sortedTweets = categorizeTweets(clusters, dataset)
+
+    # Choose top n clusters of tweets
+    # Type  --  List[Tuple(Set(), List[Tweet])]
+    sortedTweets = filterClusters(clusters, sortedTweets)
+    print(sortedTweets)
     
     # Generate email
 
