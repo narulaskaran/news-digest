@@ -76,12 +76,12 @@ class ConstructEmail:
                                         <summary></summary>
                                         {tweets}
                                     </details>
-                                """.format(keywords=', '.join(keywordsByCluster[idx]), tweets=self.serializeTweets(tweetsByCluster[idx])))
+                                """.format(keywords=', '.join(keywordsByCluster[idx]), tweets=self.serializeTweets(keywordsByCluster[idx], tweetsByCluster[idx])))
         # insert fragments into template
         self.html = self.html.format(date=date.today(), topics=''.join(topicFragments))
         self.html = self.html.replace('\\n', '')
     
-    def serializeTweets(self, tweets):
+    def serializeTweets(self, keywords, tweets):
         template = """\
             <blockquote class="twitter-tweet">
                 <a href={url}>
@@ -90,12 +90,23 @@ class ConstructEmail:
                 </a>
             </blockquote>
         """
-        # choose 5 tweets from total
-        step = (int)(len(tweets)/5)
-        tweets = tweets[::step]
-        # serialize each one and concatenate 
+        tweets = self.chooseTopTweets(keywords, tweets)
+        # serialize each tweet and concatenate 
         serializedTweets = [template.format(url=(self.url_pattern.format(handle=tweet.handle, id=tweet.id)), handle=tweet.handle, content=tweet.content) for tweet in tweets]
         return "".join(serializedTweets)
+
+    def chooseTopTweets(self, keywords, tweets, n=5):
+        tweet_scores = [0 for tweet in tweets]
+        for idx in range(len(tweets)):
+            words = tweets[idx].content.split()
+            for word in words:
+                tweet_scores[idx] += 1 if word in set(keywords) else 0
+        tweets = zip(tweet_scores, tweets)
+        tweets = sorted(tweets, key=lambda x: x[0], reverse=True)[:n]
+        tweets = [tweet[1] for tweet in tweets]
+        return tweets
+
+
 
     def getEmailBody(self):
         return self.html
