@@ -7,7 +7,24 @@ Run `python3 ./setup.py` from the root directory. This script will initialize co
 Run `python3 ./run.py` from the root directory.
 
 # System Overview
-More to come...
+Coming...
+
+# Visualizing Keyword Clusters
+Using data from January 25, 2021 as an example...
+
+The top three topics identified from Twitter data were:
+- ban, biden, executive, president, transgender
+- big, bowl, super, time, writes
+- health, pandemic, says, vaccines, variant
+
+These keywords can be visualized as a weighted, undirected graph, where edges are weighted with similarity scores from the Word2Vec model in use.
+![](writeup/graph.png)
+
+The model breaks down keywords into fairly distinct clusters. As a sanity-check, the content and tweets associated with these keywords are semantically distinct as well.
+
+![cluster 1](writeup/cluster1.png)
+![cluster 2](writeup/cluster2.png)
+![cluster 3](writeup/cluster3.png)
 
 # Resources
 ## Keyword Extraction and Sentiment Analysis
