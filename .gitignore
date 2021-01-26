@@ -133,6 +133,6 @@ config/token.pickle
 config/gmail-credentials.json
 data/db.json
 data/stop-words.txt
-*.png
+figures/*
 nlp.py
 test.html
