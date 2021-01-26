@@ -11,6 +11,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import numpy as np
 from gensim.models import Word2Vec
+import networkx as nx
 # System packages
 import multiprocessing
 import time
@@ -28,6 +29,7 @@ NUM_KEYWORDS_PER_GROUP = 5
 NUM_CORES = multiprocessing.cpu_count()
 CLUSTER_COLORS = ['blue', 'orange', 'green','red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan']
 CUSTOM_STOP_WORDS = {'rt'}
+EMAILS = ['your_recipients@email.com']
 
 # Checks whether last-fetched tweets are from > 24 hours ago.
 # If tweets are older than 24 hours, fetches the latest ones from Twitter
@@ -101,15 +103,15 @@ def extractKeywords(dataset, max_keywords=MAX_KEYWORDS):
 def trainModel(dataset):
     corpus = [tweet.content.split() for tweet in dataset]
     w2v_model = Word2Vec(min_count=20,
-                     window=2,
-                     size=300,
+                     window=3,
+                     size=500,
                      sample=6e-5, 
                      alpha=0.03, 
                      min_alpha=0.0007, 
                      negative=20,
                      workers=NUM_CORES-1)
     w2v_model.build_vocab(corpus, progress_per=1000)
-    w2v_model.train(corpus, total_examples=w2v_model.corpus_count, epochs=500, report_delay=1)
+    w2v_model.train(corpus, total_examples=w2v_model.corpus_count, epochs=2000, report_delay=1)
     return w2v_model
 
 # Creates a weighted simiarlity graph based on keywords and w2v model
@@ -232,4 +234,20 @@ if __name__ == "__main__":
     emailConstructor = ConstructEmail.ConstructEmail(filteredTopics, filteredSortedTweets)
 
     # Send email
-    email = gmail.send_message('narulaskaran@gmail.com', 'Twitter News Digest -- {}'.format(date.today()), emailConstructor.getEmailBody())
+    for email in EMAILS:
+        gmail.send_message(email, 'Twitter News Digest -- {}'.format(date.today()), emailConstructor.getEmailBody())
+
+    # Construct graph visualization of top keywords
+    graphViz = nx.Graph()
+    nodes = []
+    for cluster in filteredTopics:
+        nodes += cluster
+    for nodeA in nodes:
+        for nodeB in nodes:
+            if nodeA == nodeB:
+                continue
+            graphViz.add_edge(nodeA, nodeB, weight=model.wv.similarity(nodeA, nodeB))
+    
+    # Save graph visualization
+    nx.draw_networkx(graphViz, node_color='red', edge_color='green', width=0.5)
+    plt.savefig('figures/graph.png')
